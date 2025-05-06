@@ -11,7 +11,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import User
 from .serializer import UserRegistrationSerializer, UserSerializer
-
+from django.http import HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
@@ -144,3 +147,68 @@ def is_authenticated(request):
 @login_required
 def dashboard_view(request):
     return render(request, "users/dashboard.html", {"user": request.user})
+
+
+
+@login_required
+def user_management(request):
+    # Only admin can access this view
+    if request.user.role != 'admin':
+        return HttpResponseForbidden("You do not have permission to view this page.")  # Return 403 for unauthorized access
+
+    users = User.objects.all()
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        new_role = request.POST.get('new_role')
+
+        # Ensure the new role is valid
+        valid_roles = ['admin', 'manager', 'staff', 'delivery_confirmation']
+        if new_role not in valid_roles:
+            messages.error(request, "Invalid role selected.")
+            return redirect('users:user_management')
+
+        try:
+            user = User.objects.get(id=user_id)
+            user.role = new_role
+            user.save()
+            messages.success(request, f"User role updated to {new_role}.")
+            return redirect('users:user_management')  # reload the page after update
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return redirect('users:user_management')  # redirect with error message
+
+    context = {
+        'users': users,
+    }
+    return render(request, 'users/user_management.html', context)
+
+@csrf_exempt 
+@login_required
+def delete_users(request):
+    # Only admin can delete users
+    if request.user.role != 'admin':
+        return HttpResponseForbidden("You do not have permission to delete users.")  # 403 Forbidden if not admin
+
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from the request body
+            data = json.loads(request.body)
+            user_ids_to_delete = data.get('ids', [])
+            
+            if not user_ids_to_delete:
+                return JsonResponse({'success': False, 'error': 'No user IDs provided to delete.'})
+
+            # Delete users with the provided user_ids
+            deleted_count, _ = User.objects.filter(id__in=user_ids_to_delete).delete()
+
+            if deleted_count > 0:
+                messages.success(request, f'{deleted_count} user(s) deleted successfully.')
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'error': 'No users found to delete.'})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'Error occurred: {str(e)}'})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

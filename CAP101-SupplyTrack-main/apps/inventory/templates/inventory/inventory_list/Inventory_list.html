@@ -61,31 +61,16 @@
     </table>
 </div>
 
-<!-- Single Modal Overlay -->
 <div id="formModal" class="modal hidden">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2>Add / Update Product</h2>
-        <form method="POST" id="product-form">
+        <h2 id="modal-title">Add Product</h2>
+        <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="product_id" id="hidden-product-id">
-
-            <!-- Display form errors -->
-            {% if form.errors %}
-            <div class="error-messages">
-                <ul>
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
             {{ form.as_p }}
             <button type="submit" class="submit-btn">Save</button>
-        </form>
+        </form>                              
     </div>
 </div>
 
@@ -100,16 +85,15 @@
     // Populate the form for Update Product
     function populateFormForUpdate() {
         const selectedCheckboxes = document.querySelectorAll('.product-checkbox:checked');
-    
+
         if (selectedCheckboxes.length !== 1) {
             alert("Please select exactly one product to update.");
             return;
         }
-    
+
         const selectedRow = selectedCheckboxes[0].closest('tr');
         const cells = selectedRow.querySelectorAll('td');
-    
-        // Grab info from the row
+
         const product = {
             product_id: cells[1].textContent.trim(),
             name: cells[2].textContent.trim(),
@@ -121,21 +105,25 @@
             unit: cells[8].textContent.trim(),
             category: cells[9].textContent.trim(),
         };
-    
-        // Fill the form fields
+
+        // Fill form fields
         document.getElementById("hidden-product-id").value = product.product_id;
         document.querySelector("input[name='name']").value = product.name;
         document.querySelector("textarea[name='description']").value = product.description;
-        document.querySelector("select[name='supplier']").value = getSupplierId(product.supplier); // Needs logic
+        document.querySelector("select[name='supplier']").value = getSupplierId(product.supplier);
         document.querySelector("input[name='price']").value = product.price;
         document.querySelector("input[name='stock_quantity']").value = product.stock_quantity;
         document.querySelector("input[name='reorder_level']").value = product.reorder_level;
         document.querySelector("input[name='unit']").value = product.unit;
         document.querySelector("input[name='category']").value = product.category;
-    
-        document.querySelector(".submit-btn").textContent = "Update Product";
+
+        // Change title and button
+        document.getElementById("modal-title").textContent = "Update Product";
+        document.querySelector(".submit-btn").textContent = "Update";
+
         openModal();
     }
+
     
     // Optional: Implement logic to match supplier names to IDs
     function getSupplierId(supplierName) {
@@ -146,13 +134,18 @@
             }
         }
         return '';
-    }                
+    }
+           
 
     // Close the modal
     function closeModal() {
         document.getElementById("formModal").classList.add("hidden");
+        document.getElementById("modal-title").textContent = "Add Product";
         document.getElementById("hidden-product-id").value = "";
-        document.querySelector('.submit-btn').textContent = 'Add Product';
+        document.querySelector(".submit-btn").textContent = "Save";
+
+        // Optional: reset other fields
+        document.querySelector("form").reset();
     }
 
     // Search functionality

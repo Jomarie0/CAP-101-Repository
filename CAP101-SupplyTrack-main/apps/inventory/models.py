@@ -28,19 +28,6 @@ class Product(models.Model):
     class Meta:
         ordering = ['name']
 
-class PurchaseOrder(models.Model):
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    order_date = models.DateTimeField(auto_now_add=True)
-    expected_delivery = models.DateField()
-    status = models.CharField(
-        max_length=20,
-        choices=[("Pending", "Pending"), ("Completed", "Completed"), ("Canceled", "Canceled")],
-        default="Pending"
-    )
-
-    def __str__(self):
-        return f"Order {self.id} - {self.supplier.name}"
-
 class StockMovement(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     movement_type = models.CharField(

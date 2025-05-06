@@ -11,7 +11,9 @@
         <ul>
             <a href="{% url 'inventory:admin_dashboard' %}">Dashboard</a>
             <a href="{% url 'inventory:inventory_list' %}">Inventory</a>
-            <a href="{% url 'inventory:inventory_list' %}">Order</a>
+            <a href="{% url 'orders:order_list' %}">Order</a>
+            <a href="{% url 'users:user_management' %}">Users</a>
+
 
             <a href="{% url 'users:logout_view' %}">Logout</a>
         </ul>

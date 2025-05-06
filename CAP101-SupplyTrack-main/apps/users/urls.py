@@ -7,7 +7,9 @@ from .views import (
     is_authenticated,
     login_view,
     register_view,
-    logout_view  
+    logout_view,
+    user_management,
+    delete_users
 )
 
 
@@ -18,6 +20,9 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('register/', register_view, name='register'),
     path('logout/', logout_view, name='logout_view'),
+    path('user-management/', user_management, name='user_management'),
+    path('delete/', delete_users, name='delete_users'),
+
     # API Endpoints
     path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/refresh/', CustomRefreshTokenView.as_view(), name='token_refresh'),
